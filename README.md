@@ -11,3 +11,7 @@ Apps are namespaced by an account and an application, in a similar concept to Gi
 ### Persistent Data Support
 
 There is support for persistent storage via configuration of volumes. Multiple volumes are supported for each project.
+
+### Installation & Required Configuration
+
+To get started you will need to 
