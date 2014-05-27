@@ -1,0 +1,5 @@
+.DS_*
+*.gem
+.bundle
+Gemfile.lock
+pkg/*
