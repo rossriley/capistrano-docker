@@ -1,3 +1,3 @@
-load File.expand_path('../tasks/bundle.rake', __FILE__)
+load File.expand_path('../tasks/docker.rake', __FILE__)
+load File.expand_path('../tasks/deploy.rake', __FILE__)
 
-require "capistrano/rsync"
