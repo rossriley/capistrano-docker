@@ -20,6 +20,14 @@ namespace :deploy do
                 error "You need to have a Dockerfile setup in the root of your project"
                 exit 
             end
+            run_locally do 
+                outp = capture "git ls-files Dockerfile"
+                if outp.length == 0
+                    error "You need to have a Dockerfile commited into the root of your project. Try using: git add Dockerfile and then git commit"
+                    exit 
+                end
+            end
+
         end
     end
     
@@ -45,7 +53,7 @@ namespace :deploy do
         on roles :host do |host|
             info "Running Rsync to: #{host.user}@#{host.hostname}"
             run_locally do
-                execute "cd tmp/build/ && rsync -avR --exclude '.git' ./* #{host.user}@#{host.hostname}:#{fetch(:docker_workpath)}/"
+                execute "cd tmp/build/ && rsync -avR --exclude '.git' ./* #{host.user}@#{host.hostname}:#{fetch(:docker_buildpath)}/"
             end
         end
     end
