@@ -8,8 +8,8 @@ namespace :deploy do
                 error "You do not have any host machines defined in your capfile. Try eg: server 'host.example.com', user:youruser, roles: %w{host}"
                 exit 
             end
-            if !fetch(:port)
-                error "You do not have a port variable defined in your capfile. Try eg: set :port, 11111"
+            if !fetch(:ports) || fetch(:ports).length ==0
+                error "You do not have any port mappings defined in your capfile. Try eg: set :ports, {11111=>80}"
                 exit
             end 
             if !fetch(:namespace)
@@ -33,17 +33,25 @@ namespace :deploy do
     
     desc "Builds project locally ready for deploy."
     task :build do
-        puts "Preparing local build note, only code commited to your local Git repository will be included."
-        begin
-            sh "ls tmp/build/.git"
-        rescue
-            sh "mkdir -p tmp/build"
-            sh "cd tmp/build && git clone ../../ ."
-        end
-        sh "cd tmp/build/ && git fetch && git checkout -f origin/HEAD"
-        fetch(:build_commands).each do |command|
-            sh "cd tmp/build && "+command       
-        end
+        puts "Preparing local build: note, only code commited to your local Git repository will be included."
+       
+        run_locally do
+            outp = capture "ls tmp/build/.git"
+            if outp.length == 0
+                execute "mkdir -p tmp/build"
+                execute "cd tmp/build && git clone ../../ ."
+            end
+            
+            execute "cd tmp/build/ && git fetch && git checkout -f origin/HEAD"
+
+            fetch(:build_commands).each do |command|
+                execute "cd tmp/build && "+command       
+            end
+            
+            execute "echo '"+fetch(:start_commands, []).join(';\n') +"' > tmp/build/start.sh"
+            execute "chmod +x tmp/build/start.sh"        
+        
+        end   
         
         
     end
@@ -53,7 +61,7 @@ namespace :deploy do
         on roles :host do |host|
             info "Running Rsync to: #{host.user}@#{host.hostname}"
             run_locally do
-                execute "cd tmp/build/ && rsync -avR --exclude '.git' ./* #{host.user}@#{host.hostname}:#{fetch(:docker_buildpath)}/"
+                execute "rsync -rup --exclude '.git' tmp/build/* #{host.user}@#{host.hostname}:#{fetch(:docker_buildpath)}/"
             end
         end
     end
@@ -66,6 +74,32 @@ namespace :deploy do
         invoke "docker:build"
     end
     
+    task :proxy do
+        on roles :host do |host|
+            config = ""
+            proxies.each do |proxy,port|
+                config <<  "server {" + "\n"
+                config << "  server_name "+proxy+";" + "\n"
+                config << "  location / {" + "\n"
+                config << "    proxy_pass http://127.0.0.1:"+port+"/;" + "\n"
+                config << "    proxy_set_header Host $http_host;" + "\n"
+                config << "  }" + "\n"
+                config << "}" + "\n"
+            end
+            basepath = "dockerappliance/conf/nginx/"
+            destination = basepath + fetch(:docker_appname)+".conf"
+            io   = StringIO.new(config)
+            upload! io,   destination
+        end
+    end
+    
+    task :restart do
+        on roles :host do |host|
+            execute "sudo service nginx restart"
+        end
+    end
+    
+    
     task :finished do 
         
     end
@@ -75,7 +109,7 @@ end
 desc 'Deploy a new release.'
 task :deploy do
   set(:deploying, true)
-  %w{ check build container update deploy finished }.each do |task|
+  %w{ check build container update deploy proxy restart finished }.each do |task|
     invoke "deploy:#{task}"
   end
 end

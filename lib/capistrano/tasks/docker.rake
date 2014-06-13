@@ -4,16 +4,15 @@ namespace :docker do
     desc "Prepares the container to store structured docker apps"
     task :prepare do
         on roles :host do
-            execute "mkdir -p `pwd`/#{fetch(:docker_buildpath)}"
-            execute "mkdir -p `pwd`/#{fetch(:docker_mountpath)}"
-            execute "cd #{fetch(:docker_buildpath)} && rm -Rf ./*" rescue ""
+            execute "mkdir -p #{fetch(:docker_buildpath)}"
+            execute "mkdir -p #{fetch(:docker_mountpath)}"
         end
     end
     
     desc "build an updated box, restart container"
     task :build do
         on roles :host do
-            execute "docker build -t #{fetch(:docker_appname)} #{fetch(:docker_buildpath)}/"
+            execute "docker build --no-cache=true -t #{fetch(:docker_appname)}_img #{fetch(:docker_buildpath)}/"
             execute "docker kill #{fetch(:docker_appname)}" rescue ""
             execute "docker rm #{fetch(:docker_appname)}" rescue ""
             execute build_run_command
@@ -21,13 +20,19 @@ namespace :docker do
     end
 
     def build_run_command()
-        cmd = "docker run -p #{fetch(:port)}:#{fetch(:port)} "
-        volumes.each do |vol|
-            execute "mkdir -p -m7777 #{fetch(:docker_mountpath)}/#{vol}"
-            cmd << "-v `pwd`/#{fetch(:docker_mountpath)}/#{vol}:#{vol}:rw "
+        cmd = "docker run "
+        fetch(:ports).each do |port,map|
+           cmd << "-p #{port}:#{map} "
+        end
+        fetch(:volumes).each do |name,vol|
+            execute "mkdir -p -m7777 #{fetch(:docker_mountpath)}/#{name}"
+            cmd << "-v `pwd`/#{fetch(:docker_mountpath)}/#{name}:#{vol}:rw "
         end
         cmd << "-name #{fetch(:docker_appname)} "
-        cmd << "-d -t #{fetch(:docker_appname)}:latest"
+        cmd << "-e PG_USER='#{fetch(:application)}' "
+        cmd << "-e PG_PASS='#{fetch(:application)}' "
+        cmd << "-e PG_DB='#{fetch(:application)}' "
+        cmd << "-d -t #{fetch(:docker_appname)}_img:latest "
         cmd
     end
 end
