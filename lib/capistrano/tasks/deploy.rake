@@ -64,7 +64,7 @@ namespace :deploy do
     desc "Updates the code on the remote container"
     task :update do
         on roles :host do |host|
-            info "Running Rsync to: #{host.user}@#{host.hostname}"
+            info " Running Rsync to: #{host.user}@#{host.hostname}"
             run_locally do
                 execute "rsync -rup --exclude '.git' tmp/build/* #{host.user}@#{host.hostname}:#{fetch(:docker_buildpath)}/"
             end
@@ -102,7 +102,7 @@ namespace :deploy do
         on roles :host do |host|
             config = ""
             config << "[program:"+fetch(:docker_appname)+"]"+"\n"
-            config << "command=docker start "+fetch(:docker_appname) + "\n"
+            config << "command=docker start -a "+fetch(:docker_appname) + "\n"
             config << "autorestart=true"+"\n"
             destination = "dockerappliance/conf/supervisor/" + fetch(:docker_appname)+".conf"
             io   = StringIO.new(config)
