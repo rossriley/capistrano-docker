@@ -101,9 +101,9 @@ namespace :deploy do
     task :supervisor do
         on roles :host do |host|
             config = ""
-            config << "[program:"+fetch(:docker_appname)+"]"
-            config << "command=docker start "+fetch(:docker_appname)
-            config << "autorestart=true"
+            config << "[program:"+fetch(:docker_appname)+"]"+"\n"
+            config << "command=docker start "+fetch(:docker_appname) + "\n"
+            config << "autorestart=true"+"\n"
             destination = "dockerappliance/conf/supervisor/" + fetch(:docker_appname)+".conf"
             io   = StringIO.new(config)
             upload! io,   destination
