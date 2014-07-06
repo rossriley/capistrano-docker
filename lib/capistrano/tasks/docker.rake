@@ -29,9 +29,9 @@ namespace :docker do
             cmd << "-v `pwd`/#{fetch(:docker_mountpath)}/#{name}:#{vol}:rw "
         end
         cmd << "-name #{fetch(:docker_appname)} "
-        cmd << "-e PG_USER='#{fetch(:application)}' "
-        cmd << "-e PG_PASS='#{fetch(:application)}' "
-        cmd << "-e PG_DB='#{fetch(:application)}' "
+        cmd << "-e APP_USER='#{fetch(:docker_appname)}' "
+        cmd << "-e APP_PASS='#{fetch(:password)}' "
+        cmd << "-e APP_DB='#{fetch(:docker_appname)}' "
         cmd << "-d -t #{fetch(:docker_appname)}_img:latest "
         cmd
     end

@@ -16,6 +16,10 @@ namespace :deploy do
                 error "You do not have a docker namespace variable defined in your capfile. Try eg: set :namespace, yourname"
                 exit 
             end
+            if !fetch(:password)
+                error "You do not have an application password defined in your capfile. Try eg: set :password, secret1234"
+                exit 
+            end
             if !File.exists?('Dockerfile')
                 error "You need to have a Dockerfile setup in the root of your project"
                 exit 
@@ -36,8 +40,9 @@ namespace :deploy do
         puts "Preparing local build: note, only code commited to your local Git repository will be included."
        
         run_locally do
-            outp = capture "ls tmp/build/.git"
-            if outp.length == 0
+            begin
+                capture "ls tmp/build/.git"
+            rescue
                 execute "mkdir -p tmp/build"
                 execute "cd tmp/build && git clone ../../ ."
             end
@@ -77,7 +82,7 @@ namespace :deploy do
     task :proxy do
         on roles :host do |host|
             config = ""
-            proxies.each do |proxy,port|
+            fetch(:proxies).each do |proxy,port|
                 config <<  "server {" + "\n"
                 config << "  server_name "+proxy+";" + "\n"
                 config << "  location / {" + "\n"
@@ -88,6 +93,18 @@ namespace :deploy do
             end
             basepath = "dockerappliance/conf/nginx/"
             destination = basepath + fetch(:docker_appname)+".conf"
+            io   = StringIO.new(config)
+            upload! io,   destination
+        end
+    end
+    
+    task :supervisor do
+        on roles :host do |host|
+            config = ""
+            config << "[program:"+fetch(:docker_appname)+"]"
+            config << "command=docker start "+fetch(:docker_appname)
+            config << "autorestart=true"
+            destination = "dockerappliance/conf/supervisor/" + fetch(:docker_appname)+".conf"
             io   = StringIO.new(config)
             upload! io,   destination
         end
@@ -109,7 +126,7 @@ end
 desc 'Deploy a new release.'
 task :deploy do
   set(:deploying, true)
-  %w{ check build container update deploy proxy restart finished }.each do |task|
+  %w{ check build container update deploy proxy supervisor restart finished }.each do |task|
     invoke "deploy:#{task}"
   end
 end
