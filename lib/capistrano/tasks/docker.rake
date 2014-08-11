@@ -12,7 +12,7 @@ namespace :docker do
     desc "build an updated box, restart container"
     task :build do
         on roles :host do
-            execute "docker build --no-cache=true -t #{fetch(:docker_appname)}_img #{fetch(:docker_buildpath)}/"
+            execute "docker build -t #{fetch(:docker_image)} #{fetch(:docker_buildpath)}/"
             execute "docker kill #{fetch(:docker_appname)}" rescue ""
             execute "docker rm #{fetch(:docker_appname)}" rescue ""
             execute build_run_command
@@ -29,10 +29,10 @@ namespace :docker do
             cmd << "-v `pwd`/#{fetch(:docker_mountpath)}/#{name}:#{vol}:rw "
         end
         cmd << "-name #{fetch(:docker_appname)} "
-        cmd << "-e APP_USER='#{fetch(:docker_appname)}' "
-        cmd << "-e APP_PASS='#{fetch(:password)}' "
-        cmd << "-e APP_DB='#{fetch(:docker_appname)}' "
-        cmd << "-d -t #{fetch(:docker_appname)}_img:latest "
+        cmd << "-e APP_USER='#{fetch(:app_username)}' "
+        cmd << "-e APP_PASS='#{fetch(:app_password)}' "
+        cmd << "-e APP_DB='#{fetch(:app_db)}' "
+        cmd << "-d -t #{fetch(:docker_image)}:latest "
         cmd
     end
 end
@@ -45,6 +45,10 @@ namespace :load do
         set  :docker_buildpath, ->   { "#{fetch(:docker_workpath)}/config" }
         set  :docker_mountpath, ->   { "#{fetch(:docker_workpath)}/mounts" }
         set  :docker_appname,   ->   { "#{fetch(:namespace)}_#{fetch(:application)}" }
+        set  :docker_image,   ->     { "#{fetch(:namespace)}_#{fetch(:image, fetch(:application))}" }
+        set  :app_username,   ->     { "#{fetch(:docker_appname)}" }
+        set  :app_password,   ->     { "#{fetch(:password)}" }
+        set  :app_db,   ->           { "#{fetch(:app_username)}" }
         
         
     end

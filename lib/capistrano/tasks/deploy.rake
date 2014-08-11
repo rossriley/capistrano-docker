@@ -66,7 +66,7 @@ namespace :deploy do
         on roles :host do |host|
             info " Running Rsync to: #{host.user}@#{host.hostname}"
             run_locally do
-                execute "rsync -rup --exclude '.git' tmp/build/* #{host.user}@#{host.hostname}:#{fetch(:docker_buildpath)}/"
+                execute "rsync -rupl --exclude '.git' tmp/build/* #{host.user}@#{host.hostname}:#{fetch(:docker_buildpath)}/"
             end
         end
     end
