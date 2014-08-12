@@ -28,6 +28,9 @@ namespace :docker do
             execute "mkdir -p -m7777 #{fetch(:docker_mountpath)}/#{name}"
             cmd << "-v `pwd`/#{fetch(:docker_mountpath)}/#{name}:#{vol}:rw "
         end
+        fetch(:links, {}).each do |link,name|
+            cmd << "--link "+link+":"+name+" "
+        end
         cmd << "-name #{fetch(:docker_appname)} "
         cmd << "-e APP_USER='#{fetch(:app_username)}' "
         cmd << "-e APP_PASS='#{fetch(:app_password)}' "
