@@ -21,8 +21,8 @@ namespace :docker do
 
     def build_run_command()
         cmd = "docker run "
-        fetch(:ports).each do |port,map|
-           cmd << "-p #{port}:#{map} "
+        fetch(:ports).each do |port|
+           cmd << "-p #{port} "
         end
         fetch(:volumes).each do |name,vol|
             execute "mkdir -p -m7777 #{fetch(:docker_mountpath)}/#{name}"
