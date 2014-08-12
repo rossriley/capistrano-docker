@@ -83,10 +83,11 @@ namespace :deploy do
         on roles :host do |host|
             config = ""
             fetch(:proxies).each do |proxy,port|
+                proxyport = capture "docker port #{fetch(:docker_appname)} "+port
                 config <<  "server {" + "\n"
                 config << "  server_name "+proxy+";" + "\n"
                 config << "  location / {" + "\n"
-                config << "    proxy_pass http://127.0.0.1:"+port+"/;" + "\n"
+                config << "    proxy_pass http://"+proxyport+"/;" + "\n"
                 config << "    proxy_set_header Host $http_host;" + "\n"
                 config << "  }" + "\n"
                 config << "}" + "\n"
