@@ -47,7 +47,8 @@ namespace :deploy do
                 execute "cd tmp/build && git clone ../../ ."
             end
             
-            execute "cd tmp/build/ && git fetch && git checkout -f origin/HEAD"
+            commit = capture "git rev-parse HEAD"
+            execute "cd tmp/build/ && git fetch && git checkout -f #{commit}"
 
             fetch(:build_commands).each do |command|
                 execute "cd tmp/build && "+command       

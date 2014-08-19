@@ -31,7 +31,7 @@ namespace :docker do
         fetch(:links, {}).each do |link,name|
             cmd << "--link "+link+":"+name+" "
         end
-        cmd << "-name #{fetch(:docker_appname)} "
+        cmd << "--name #{fetch(:docker_appname)} "
         cmd << "-e APP_USER='#{fetch(:app_username)}' "
         cmd << "-e APP_PASS='#{fetch(:app_password)}' "
         cmd << "-e APP_DB='#{fetch(:app_db)}' "
