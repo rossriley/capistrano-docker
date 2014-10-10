@@ -18,10 +18,6 @@ namespace :docker do
             execute build_run_command
         end
     end
-    
-    task :run do 
-        execute build_run_command
-    end
 
     def build_run_command()
         cmd = "docker run "
