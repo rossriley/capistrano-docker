@@ -4,7 +4,7 @@ $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 
 Gem::Specification.new do |spec|
   spec.name          = 'capistrano-docker'
-  spec.version       = '0.0.5'
+  spec.version       = '0.0.7'
   spec.authors       = ["Ross Riley"]
   spec.email         = ["riley.ross@gmail.com"]
   spec.description   = %q{Docker support for Capistrano 3.x}

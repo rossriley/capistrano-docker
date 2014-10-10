@@ -18,11 +18,19 @@ namespace :docker do
             execute build_run_command
         end
     end
+    
+    task :run do 
+        execute build_run_command
+    end
 
     def build_run_command()
         cmd = "docker run "
         fetch(:ports).each do |port|
-           cmd << "-p #{port} "
+            if port.is_a?(Hash) && port[:private] && port[:public]
+                cmd << "-p #{port[:public]}:#{port[:private]} "
+            else
+                cmd << "-p #{port} "
+            end
         end
         fetch(:volumes).each do |name,vol|
             execute "mkdir -p -m7777 #{fetch(:docker_mountpath)}/#{name}"
@@ -35,6 +43,9 @@ namespace :docker do
         cmd << "-e APP_USER='#{fetch(:app_username)}' "
         cmd << "-e APP_PASS='#{fetch(:app_password)}' "
         cmd << "-e APP_DB='#{fetch(:app_db)}' "
+        fetch(:environment, {}).each do |var,value|
+            cmd << "-e "+var+"='"+val+"' "
+        end
         cmd << "-d -t #{fetch(:docker_image)}:latest "
         cmd
     end
