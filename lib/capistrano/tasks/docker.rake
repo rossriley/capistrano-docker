@@ -44,7 +44,7 @@ namespace :docker do
         cmd << "-e APP_PASS='#{fetch(:app_password)}' "
         cmd << "-e APP_DB='#{fetch(:app_db)}' "
         fetch(:environment, {}).each do |var,value|
-            cmd << "-e "+var+"='"+val+"' "
+            cmd << "-e "+var+"='"+value+"' "
         end
         cmd << "-d -t #{fetch(:docker_image)}:latest "
         cmd
